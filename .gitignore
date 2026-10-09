@@ -1,0 +1,68 @@
+# ===================== IDEA 相关 =====================
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+# ===================== Eclipse 相关（兼容） =====================
+.classpath
+.project
+.settings/
+bin/
+
+# ===================== Maven 编译产物 =====================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber
+
+# ===================== Gradle（备用，如果你后面用到） =====================
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ===================== Java 编译class文件 =====================
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# ===================== 日志文件 =====================
+*.log
+*.gz
+*.tmp
+*.bak
+
+# ===================== 数据库/本地配置 =====================
+# 本地数据库、sqlite文件
+*.db
+*.sqlite
+# 本地环境配置（防止把数据库密码提交上去！）
+application-local.yml
+application-local.yaml
+application-local.properties
+
+# ===================== 操作系统文件 =====================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ===================== 其他临时文件 =====================
+*.swp
+*.swo
+*~
+.DS_Store

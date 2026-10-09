@@ -1,0 +1,91 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /          # 不额外加前缀，所有接口以 /api 开头
+
+spring:
+  application:
+    name: blog-backend
+
+  # ==================== 数据源（MySQL） ====================
+  # 注意：数据库 blog_db 需要先执行 sql/01-schema.sql 创建，本工程不会自动建库建表
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 参数说明：
+    #   useUnicode/characterEncoding  解决中文乱码
+    #   useSSL=false                  本地开发关闭 SSL，避免握手告警
+    #   serverTimezone                不设置时 8.0 驱动可能报时区错误
+    #   allowPublicKeyRetrieval=true  MySQL 8 默认 caching_sha2_password 认证需要
+    #   rewriteBatchedStatements=true 批量插入性能优化
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:blog_db}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
+    # 语法 ${环境变量:默认值}：本地开发直接跑（用默认值），
+    # 生产/CI 通过环境变量覆盖，避免把真实账号密码提交进 Git。
+    # 本项目是开源演示项目，默认值可公开；真实环境请务必用环境变量注入。
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:abc123}
+    # HikariCP 连接池（Spring Boot 2.x 默认连接池）
+    hikari:
+      pool-name: BlogHikariPool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: always   # 保留 null 字段，前端结构更稳定
+
+  # 重要：不要打开 spring.sql.init.*，
+  # 本工程的建表 / 初始化数据由你手动执行 sql/ 下的脚本，启动流程不碰 DDL/DML
+  sql:
+    init:
+      mode: never
+
+  mvc:
+    throw-exception-if-no-handler-found: true   # 找不到接口时抛异常，交给全局异常处理
+  web:
+    resources:
+      # 关键：关闭默认静态资源映射。
+      # 否则 /** 会被 ResourceHttpRequestHandler 兜住，请求不会抛 NoHandlerFoundException，
+      # 最终返回的是 Spring Boot 默认错误 JSON，而不是我们统一的 Result 结构。
+      # 本项目后端不提供任何静态资源（前端独立部署），关掉没有任何副作用。
+      add-mappings: false
+
+# ==================== MyBatis-Plus ====================
+mybatis-plus:
+  configuration:
+    # 开启驼峰映射：实体 createTime <-> 表字段 create_time
+    map-underscore-to-camel-case: true
+    # 开发期把执行的 SQL 打到控制台，方便确认"页面上的操作确实打到了数据库"
+    # 生产环境请改成 org.apache.ibatis.logging.nologging.NoLoggingImpl
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    call-setters-on-nulls: true
+  global-config:
+    banner: false
+    db-config:
+      # 主键策略：数据库自增（对应建表语句的 AUTO_INCREMENT）
+      id-type: auto
+      table-underline: true
+  # 实体别名包
+  type-aliases-package: com.blog.entity
+  # 如需 XML 映射文件，放在 resources/mapper 下
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+# ============ 自定义配置：JWT ============
+blog:
+  jwt:
+    # HS256 要求密钥长度 >= 256bit(32字节)。
+    # 默认值仅供本地演示；生产务必通过环境变量 JWT_SECRET 注入随机串：
+    #   export JWT_SECRET=$(openssl rand -base64 48)
+    secret: ${JWT_SECRET:blog-mock-jwt-secret-key-please-change-in-production-2024}
+    # token 有效期（小时）
+    expire-hours: 24
+    # 前端携带 token 的请求头名称与前缀
+    header: Authorization
+    prefix: "Bearer "
+
+logging:
+  level:
+    com.blog: debug
